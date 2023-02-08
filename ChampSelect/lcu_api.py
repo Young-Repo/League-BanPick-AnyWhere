@@ -9,6 +9,7 @@ from requests.auth import HTTPBasicAuth
 class URLPath:
     CHAMP_SELECT_SESSION = "/lol-champ-select/v1/session"
     LOBBY = "/lol-lobby/v2/lobby"
+    POSITION = "/lol-lobby/v2/lobby/members/localMember/position-preferences"
 
 
 class LCU_API:
@@ -41,6 +42,24 @@ class LCU_API:
             "queueId": queue_id,
         }
         self.sess.post(url, json=lobby_data)
+
+    def change_position(self, first_position=None, second_position=None):
+        available_position = ["TOP", "MIDDLE", "JUNGLE", "BOTTOM", "UTILITY", "FILL"]
+        lobby_url = self.base_url + URLPath.LOBBY
+        res = self.sess.get(lobby_url)
+        my_lobby_info = res.json()["localMember"]
+        prev_first_position = my_lobby_info["firstPositionPreference"]
+        prev_second_position = my_lobby_info["secondPositionPreference"]
+        position_url = self.base_url + URLPath.POSITION
+        lobby_data = {
+            "firstPreference": first_position
+            if first_position in available_position
+            else prev_first_position,
+            "secondPreference": second_position
+            if second_position in available_position
+            else prev_second_position,
+        }
+        self.sess.put(position_url, json=lobby_data)
 
     def ban_pick_champion(self, champion_id, type="BAN"):
         url = self.base_url + URLPath.CHAMP_SELECT_SESSION
