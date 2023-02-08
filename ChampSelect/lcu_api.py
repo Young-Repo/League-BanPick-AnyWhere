@@ -1,11 +1,14 @@
 import re
 import subprocess
+import time
 import requests
+
 from requests.auth import HTTPBasicAuth
 
 
 class URLPath:
     CHAMP_SELECT_SESSION = "/lol-champ-select/v1/session"
+    LOBBY = "/lol-lobby/v2/lobby"
 
 
 class LCU_API:
@@ -25,6 +28,19 @@ class LCU_API:
     def print_connection_info(self):
         print(self._auth)
         print(self._port)
+
+    def make_lobby(self, queue_id=420):
+        """
+        TODO: fill queue id
+        420 : SOLO_RANK
+        XXX : NORMAL_RIFT
+        XXX : ARAM
+        """
+        url = self.base_url + URLPath.LOBBY
+        lobby_data = {
+            "queueId": queue_id,
+        }
+        self.sess.post(url, json=lobby_data)
 
     def ban_pick_champion(self, champion_id, type="BAN"):
         url = self.base_url + URLPath.CHAMP_SELECT_SESSION
