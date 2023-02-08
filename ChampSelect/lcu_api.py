@@ -10,6 +10,9 @@ class URLPath:
     CHAMP_SELECT_SESSION = "/lol-champ-select/v1/session"
     LOBBY = "/lol-lobby/v2/lobby"
     POSITION = "/lol-lobby/v2/lobby/members/localMember/position-preferences"
+    MATCH_MAKING = "/lol-matchmaking/v1/ready-check"
+    MATCH_MAKING_SEARCH = "/lol-lobby/v2/lobby/matchmaking/search"  # POST, DELETE
+    MATCH_MAKING_SEARCH_STATE = "/lol-lobby/v2/lobby/matchmaking/search-state"  # GET
 
 
 class LCU_API:
@@ -60,6 +63,28 @@ class LCU_API:
             else prev_second_position,
         }
         self.sess.put(position_url, json=lobby_data)
+
+    async def check_match_making(self):
+        """
+        Call this async func after MatchMaking Search Called
+        """
+        url = self.base_url + URLPath.MATCH_MAKING
+        do_until_queue_is_caught = True
+        while do_until_queue_is_caught:
+            try:
+                res = self.sess.get(url)
+                result_data = res.json()
+                if (
+                    result_data["state"] == "InProgress"
+                    and result_data["playerResponse"] == "None"
+                ):
+                    do_until_queue_is_caught = False
+            except Exception as e:
+                """
+                TODO: need to handle.
+                occured when match making search deleted
+                """
+                time.sleep(1)
 
     def ban_pick_champion(self, champion_id, type="BAN"):
         url = self.base_url + URLPath.CHAMP_SELECT_SESSION
